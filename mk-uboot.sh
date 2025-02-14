@@ -57,11 +57,14 @@ echo -e "\e[36m Using ${UBOOT_DEFCONFIG} \e[0m"
 
 cd ${LOCALPATH}/u-boot
 
-if [[ "${CHIP}" == "rk3566" ]] || [[ "${CHIP}" == "rk3568" ]] || [[ "${CHIP}" == "rk3588" ]]; then
-	echo "Chip is $CHIP"
-else
-	make ${UBOOT_DEFCONFIG} all
-fi
+case ${CHIP} in
+	rk3528 | rk3566 | rk3568 | rk3576 | rk3588 | rk3588s)
+		echo "Chip is $CHIP"
+		;;
+	*)
+		make ${UBOOT_DEFCONFIG} all
+		;;
+esac
 
 if  [ "${CHIP}" == "rk322x" ] || [ "${CHIP}" == "rk3036" ]; then
 	if [ `grep CONFIG_SPL_OF_CONTROL=y ./.config` ] && \

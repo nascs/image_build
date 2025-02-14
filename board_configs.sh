@@ -242,6 +242,15 @@ case ${BOARD} in
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		CHIP="rk3528"
 		;;
+	"radxa-e24c")
+		DEFCONFIG=rockchip_linux_defconfig
+		UBOOT_DEFCONFIG=rock-2-rk3528_defconfig
+		UBOOT_SPI_DEFCONFIG=radxa-e24c-spi-rk3528_defconfig
+		DTB=rk3528-radxa-e24c.dtb
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
+		CHIP="rk3528"
+		;;
 	"rock-2a")
 		DEFCONFIG=rockchip_linux_defconfig
 		UBOOT_DEFCONFIG=rock-2a-rk3528_defconfig

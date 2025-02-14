@@ -349,10 +349,10 @@ EOF
 elif [ "${CHIP}" == "rk3528" ]; then
 	make ${UBOOT_DEFCONFIG}
 	make BL31=../rkbin/bin/rk35/rk3528_bl31_v1.17.elf spl/u-boot-spl.bin u-boot.dtb u-boot.itb
-	./tools/mkimage -n rk3528 -T rksd -d ../rkbin/bin/rk35/rk3528_ddr_1056MHz_v1.09.bin:spl/u-boot-spl.bin idbloader.img
+	./tools/mkimage -n rk3528 -T rksd -d ../rkbin/bin/rk35/rk3528_ddr_1056MHz_v1.10.bin:spl/u-boot-spl.bin idbloader.img
 	cp u-boot.itb ${OUT}/u-boot/
 	cp idbloader.img ${OUT}/u-boot/
-	cp ../rkbin/bin/rk35/rk3528_spl_loader_v1.07.104.bin ${OUT}/u-boot/
+	cp ../rkbin/bin/rk35/rk3528_spl_loader_v1.10.105.bin ${OUT}/u-boot/
 elif [ "${CHIP}" == "rk3566" ]; then
 	make ${UBOOT_DEFCONFIG}
 	make BL31=../rkbin/bin/rk35/rk3568_bl31_v1.44.elf spl/u-boot-spl.bin u-boot.dtb u-boot.itb

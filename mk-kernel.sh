@@ -64,4 +64,7 @@ sed -e "s,fdt .*,fdt /$DTB,g" \
 
 ./build/mk-image.sh -c ${CHIP} -t boot -b ${BOARD}
 
+find ${OUT}/rootfs -name "build" | xargs rm -rf
+find ${OUT}/rootfs -name "source" | xargs rm -rf
+
 echo -e "\e[36m Kernel build success! \e[0m"

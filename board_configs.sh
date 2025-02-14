@@ -317,6 +317,7 @@ case ${BOARD} in
 	"rock-4d")
 		DEFCONFIG=rockchip_linux_defconfig
 		UBOOT_DEFCONFIG=rock-4d-rk3576_defconfig
+		UBOOT_SPI_DEFCONFIG=rock-4d-spi-rk3576_defconfig
 		DTB=rk3576-rock-4d.dtb
 		export ARCH=arm64
 		export CROSS_COMPILE=aarch64-linux-gnu-

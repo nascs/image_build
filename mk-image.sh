@@ -2,20 +2,15 @@
 
 LOCALPATH=$(pwd)
 OUT=${LOCALPATH}/out
-TOOLPATH=${LOCALPATH}/rkbin/tools
-EXTLINUXPATH=${LOCALPATH}/build/extlinux
 CHIP=""
 TARGET=""
 ROOTFS_PATH=""
 BOARD=""
 
-PATH=$PATH:$TOOLPATH
-
 source $LOCALPATH/build/partitions.sh
 
 usage() {
-	echo -e "\nUsage: build/mk-image.sh -c rk3399 -t system -r rk-rootfs-build/linaro-rootfs.img \n"
-	echo -e "       build/mk-image.sh -c rk3399 -t boot -b rockpi4b\n"
+	echo -e "\nUsage: build/mk-image.sh -c qcs6490 -t system -r rootfs/rootfs.ext4 \n"
 }
 finish() {
 	echo -e "\e[31m MAKE IMAGE FAILED.\e[0m"
@@ -47,10 +42,6 @@ if [ ! $CHIP ] && [ ! $TARGET ]; then
 	exit
 fi
 
-if [ ! -f "${EXTLINUXPATH}/${CHIP}.conf" ]; then
-	CHIP="rk3288"
-fi
-
 generate_boot_image() {
 	BOOT=${OUT}/boot.img
 	rm -rf ${BOOT}
@@ -59,10 +50,7 @@ generate_boot_image() {
 
 	mkfs.vfat -n "boot" -S 512 -C ${BOOT} $((100 * 1024))
 
-	mmd -i ${BOOT} ::/extlinux
-	mmd -i ${BOOT} ::/overlays
-
-	mcopy -i ${BOOT} -s ${EXTLINUXPATH}/${CHIP}.conf ::/extlinux/extlinux.conf
+	mcopy -i ${BOOT} -s ${LOCALPATH}/build/boot/* ::
 	mcopy -i ${BOOT} -s ${OUT}/kernel/* ::
 
 	echo -e "\e[36m Generate Boot image : ${BOOT} success! \e[0m"
@@ -90,47 +78,19 @@ generate_system_image() {
 	# but this will overrite the backup table of GPT
 	# will cause corruption error for GPT
 	IMG_ROOTFS_SIZE=$(stat -L --format="%s" ${ROOTFS_PATH})
-	GPTIMG_MIN_SIZE=$(expr $IMG_ROOTFS_SIZE + \( ${LOADER1_SIZE} + ${RESERVED1_SIZE} + ${RESERVED2_SIZE} + ${LOADER2_SIZE} + ${ATF_SIZE} + ${BOOT_SIZE} + 35 \) \* 512)
+	GPTIMG_MIN_SIZE=$(expr $IMG_ROOTFS_SIZE + \( ${BOOT_START} + ${BOOT_SIZE} + 35 \) \* 512)
 	GPT_IMAGE_SIZE=$(expr $GPTIMG_MIN_SIZE \/ 1024 \/ 1024 + 2)
 
 	dd if=/dev/zero of=${SYSTEM} bs=1M count=0 seek=$GPT_IMAGE_SIZE
 
-	if [ "$BOARD" == "rockpi4" ]; then
-		parted -s ${SYSTEM} mklabel gpt
-		parted -s ${SYSTEM} unit s mkpart loader1 ${LOADER1_START} $(expr ${RESERVED1_START} - 1)
-		# parted -s ${SYSTEM} unit s mkpart reserved1 ${RESERVED1_START} $(expr ${RESERVED2_START} - 1)
-		# parted -s ${SYSTEM} unit s mkpart reserved2 ${RESERVED2_START} $(expr ${LOADER2_START} - 1)
-		parted -s ${SYSTEM} unit s mkpart loader2 ${LOADER2_START} $(expr ${ATF_START} - 1)
-		parted -s ${SYSTEM} unit s mkpart trust ${ATF_START} $(expr ${BOOT_START} - 1)
-		parted -s ${SYSTEM} unit s mkpart boot ${BOOT_START} $(expr ${ROOTFS_START} - 1)
-		parted -s ${SYSTEM} set 4 boot on
-		parted -s ${SYSTEM} -- unit s mkpart rootfs ${ROOTFS_START} -34s
-	else
-		parted -s ${SYSTEM} mklabel gpt
-		parted -s ${SYSTEM} unit s mkpart boot ${BOOT_START} $(expr ${ROOTFS_START} - 1)
-		parted -s ${SYSTEM} set 1 boot on
-		parted -s ${SYSTEM} -- unit s mkpart rootfs ${ROOTFS_START} -34s
-	fi
+	parted -s ${SYSTEM} mklabel gpt
+	parted -s ${SYSTEM} unit s mkpart boot ${BOOT_START} $(expr ${ROOTFS_START} - 1)
+	parted -s ${SYSTEM} set 1 boot on
+	parted -s ${SYSTEM} -- unit s mkpart rootfs ${ROOTFS_START} -34s
 
-	if [ "$CHIP" == "rk3328" ] || [ "$CHIP" == "rk3399" ] || [ "$CHIP" == "rk3399pro" ]; then
-		ROOT_UUID="B921B045-1DF0-41C3-AF44-4C6F280D3FAE"
-	elif [ "$CHIP" == "rk3308" ] || [ "$CHIP" == "px30" ] || [ "$CHIP" == "rk3528" ] || [ "$CHIP" == "rk3566" ] || [ "$CHIP" == "rk3568" ] || [ "$CHIP" == "rk3576" ] || [ "$CHIP" == "rk3588s" ] || [ "$CHIP" == "rk3588" ]; then
-		ROOT_UUID="614e0000-0000-4b53-8000-1d28000054a9"
-	else
-		ROOT_UUID="69DAD710-2CE4-4E3C-B16C-21A1D49ABED3"
-	fi
+	ROOT_UUID="614e0000-0000-4b53-8000-1d28000054a9"
 
-	if [ "$BOARD" == "rockpi4" ]; then
-		gdisk ${SYSTEM} <<EOF
-x
-c
-5
-${ROOT_UUID}
-w
-y
-EOF
-	else
-		gdisk ${SYSTEM} <<EOF
+	gdisk ${SYSTEM} <<EOF
 x
 c
 2
@@ -138,25 +98,6 @@ ${ROOT_UUID}
 w
 y
 EOF
-	fi
-
-	# burn u-boot
-	case ${CHIP} in
-	rk322x | rk3036 )
-		dd if=${OUT}/u-boot/idbloader.img of=${SYSTEM} seek=${LOADER1_START} conv=notrunc
-		;;
-	px30 | rk3288 | rk3308 | rk3328 | rk3399 | rk3399pro )
-		dd if=${OUT}/u-boot/idbloader.img of=${SYSTEM} seek=${LOADER1_START} conv=notrunc
-		dd if=${OUT}/u-boot/uboot.img of=${SYSTEM} seek=${LOADER2_START} conv=notrunc
-		dd if=${OUT}/u-boot/trust.img of=${SYSTEM} seek=${ATF_START} conv=notrunc
-		;;
-	rk3528 | rk3566 | rk3568 | rk3576 | rk3588s | rk3588)
-		dd if=${OUT}/u-boot/idbloader.img of=${SYSTEM} seek=${LOADER1_START} conv=notrunc
-		dd if=${OUT}/u-boot/u-boot.itb of=${SYSTEM} seek=${LOADER2_START} conv=notrunc
-		;;
-	*)
-		;;
-	esac
 
 	# burn boot image
 	dd if=${OUT}/boot.img of=${SYSTEM} conv=notrunc seek=${BOOT_START}

@@ -2,7 +2,6 @@
 
 LOCALPATH=$(pwd)
 OUT=${LOCALPATH}/out
-EXTLINUXPATH=${LOCALPATH}/build/extlinux
 BOARD=$1
 
 version_gt() { test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; }
@@ -12,10 +11,6 @@ finish() {
 	exit -1
 }
 trap finish ERR
-
-if [ $# != 1 ]; then
-	BOARD=rk3288-evb
-fi
 
 [ ! -d ${OUT} ] && mkdir ${OUT}
 [ ! -d ${OUT}/kernel ] && mkdir ${OUT}/kernel
@@ -49,18 +44,8 @@ make -j8
 make modules_install INSTALL_MOD_PATH=${OUT}/rootfs
 
 cd ${LOCALPATH}
-
-if [ "${ARCH}" == "arm" ]; then
-	cp ${LOCALPATH}/kernel/arch/arm/boot/zImage ${OUT}/kernel/
-	cp ${LOCALPATH}/kernel/arch/arm/boot/dts/${DTB} ${OUT}/kernel/
-else
-	cp ${LOCALPATH}/kernel/arch/arm64/boot/Image ${OUT}/kernel/
-	cp ${LOCALPATH}/kernel/arch/arm64/boot/dts/rockchip/${DTB} ${OUT}/kernel/
-fi
-
-# Change extlinux.conf according board
-sed -e "s,fdt .*,fdt /$DTB,g" \
-	-i ${EXTLINUXPATH}/${CHIP}.conf
+cp ${LOCALPATH}/kernel/arch/arm64/boot/Image ${OUT}/kernel/
+cp ${LOCALPATH}/kernel/arch/arm64/boot/dts/qcom/${DTB} ${OUT}/kernel/
 
 ./build/mk-image.sh -c ${CHIP} -t boot -b ${BOARD}
 

@@ -1,3 +1,0 @@
-#!/bin/bash
-sh /usr/lib/kernel-rockchip/install.sh
-exit 0

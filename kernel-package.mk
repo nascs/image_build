@@ -1,9 +1,9 @@
 RELEASE_NUMBER ?= 1
-KERNEL_DEFCONFIG ?= rockchip_linux_defconfig
+KERNEL_DEFCONFIG ?= qcmini_defconfig
 
 KERNEL_VERSION ?= $(shell $(KERNEL_MAKE) -s kernelversion)
 KERNEL_RELEASE ?= $(shell $(KERNEL_MAKE) -s kernelrelease)
-KDEB_PKGVERSION ?= $(KERNEL_VERSION)-$(RELEASE_NUMBER)-rockchip
+KDEB_PKGVERSION ?= $(KERNEL_VERSION)-$(RELEASE_NUMBER)-qualcomm
 
 KERNEL_MAKE ?= make \
 	ARCH=arm64 \
@@ -15,9 +15,9 @@ KERNEL_MAKE ?= make \
 .PHONY: .scmversion
 .scmversion:
 ifneq (,$(RELEASE_NUMBER))
-	@echo "-$(RELEASE_NUMBER)-rockchip-g$$(git rev-parse --short HEAD)" > .scmversion
+	@echo "-$(RELEASE_NUMBER)-qualcomm-g$$(git rev-parse --short HEAD)" > .scmversion
 else
-	@echo "-rockchip-dev" > .scmversion
+	@echo "-qualcomm-dev" > .scmversion
 endif
 
 version:

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 export ARCH=arm64
-export CROSS_COMPILE=aarch64-linux-gnu-
+export CROSS_COMPILE=/tank3/william/toolchain/arm-gnu-toolchain-12.2.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 
 BOARD=$1
 DEFCONFIG=""
@@ -11,12 +11,12 @@ CHIP=""
 UBOOT_DEFCONFIG=""
 
 case ${BOARD} in
-	"dragon-q6a")
-		DEFCONFIG=qcom_module_defconfig
-		DTB=qcs6490-radxa-dragon-q6a.dtb
+	"airbox-q900")
+		DEFCONFIG=qcom_defconfig
+		DTB=qcs9075-radxa-airbox-q900.dtb
 		export ARCH=arm64
-		export CROSS_COMPILE=aarch64-linux-gnu-
-		CHIP="qcs6490"
+		export CROSS_COMPILE=/tank3/william/toolchain/arm-gnu-toolchain-12.2.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+		CHIP="qcs9075"
 		;;
 	*)
 		echo "board '${BOARD}' not supported!"

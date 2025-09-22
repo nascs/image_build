@@ -2,7 +2,7 @@ To build kernel and system image:
 
 build kernel image:  (output : boot.img and out/kernel)
 
-	bash ./build/mk-kernel.sh dragon-q6a
+	bash ./build/mk-kernel.sh airbox-q900
 
 build one system image:  (output : system.img)
 

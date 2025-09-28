@@ -27,21 +27,13 @@ echo -e "\e[36m Building kernel for ${BOARD} board! \e[0m"
 KERNEL_VERSION=$(cd ${LOCALPATH}/kernel && make kernelversion)
 echo $KERNEL_VERSION
 
-if version_gt "${KERNEL_VERSION}" "5.11"; then
-	if [ "${DTB_MAINLINE}" ]; then
-		DTB=${DTB_MAINLINE}
-	fi
-
-	if [ "${DEFCONFIG_MAINLINE}" ]; then
-		DEFCONFIG=${DEFCONFIG_MAINLINE}
-	fi
-fi
-
 cd ${LOCALPATH}/kernel
 [ ! -e .config ] && echo -e "\e[36m Using ${DEFCONFIG} \e[0m" && make ${DEFCONFIG}
 
 make -j8
 make modules_install INSTALL_MOD_PATH=${OUT}/rootfs
+make headers_install INSTALL_HDR_PATH=${OUT}/rootfs
+
 
 cd ${LOCALPATH}
 cp ${LOCALPATH}/kernel/arch/arm64/boot/Image ${OUT}/kernel/
@@ -49,7 +41,6 @@ cp ${LOCALPATH}/kernel/arch/arm64/boot/dts/qcom/${DTB} ${OUT}/kernel/
 
 ./build/mk-image.sh -c ${CHIP} -t boot -b ${BOARD}
 
-find ${OUT}/rootfs -name "build" | xargs rm -rf
 find ${OUT}/rootfs -name "source" | xargs rm -rf
 
 echo -e "\e[36m Kernel build success! \e[0m"

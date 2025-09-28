@@ -18,6 +18,13 @@ case ${BOARD} in
 		export CROSS_COMPILE=aarch64-linux-gnu-
 		CHIP="qcs6490"
 		;;
+	"airbox-q900")
+		DEFCONFIG="qcom_defconfig qcom_addons.config"
+		DTB=qcs9075-radxa-airbox-q900.dtb
+		export ARCH=arm64
+		export CROSS_COMPILE=aarch64-linux-gnu-
+		CHIP="qcs9075"
+		;;
 	*)
 		echo "board '${BOARD}' not supported!"
 		exit -1
